@@ -1,7 +1,8 @@
 import React, { useRef, useCallback } from "react";
 import Webcam from "react-webcam";
+import { Camera, Upload, XCircle } from "lucide-react";
 
-const CameraComponent = ({ onCapture }) => {
+const CameraComponent = ({ onCapture, onCancel }) => {
   const webcamRef = useRef(null);
 
   const capture = useCallback(() => {
@@ -12,10 +13,16 @@ const CameraComponent = ({ onCapture }) => {
   }, [webcamRef, onCapture]);
 
   return (
-    <div className="p-4 border rounded">
-      <h3 className="text-lg font-bold mb-4">Zrób zdjęcie</h3>
-
-      <div className="flex flex-col gap-4">
+    <div className="p-4">
+      <div className="mb-4 relative overflow-hidden rounded-lg border-2 border-purple-500">
+        <div
+          className="absolute inset-0 z-10 pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(transparent 50%, rgba(0, 0, 0, 0.1) 50%)",
+            backgroundSize: "4px 4px",
+          }}
+        ></div>
         <Webcam
           audio={false}
           ref={webcamRef}
@@ -23,37 +30,54 @@ const CameraComponent = ({ onCapture }) => {
           videoConstraints={{
             facingMode: "environment",
           }}
-          className="w-full rounded"
+          className="w-full rounded-lg"
         />
+      </div>
 
+      <div className="flex flex-col space-y-3">
         <button
           onClick={capture}
-          className="bg-blue-500 text-white p-2 rounded"
+          className="bg-purple-700 text-white py-3 px-4 rounded-lg hover:bg-purple-600 transition border-2 border-purple-500 flex items-center justify-center"
         >
-          Zrób zdjęcie
+          <Camera size={20} className="mr-2 text-teal-300" />
+          <span className="pixelated text-sm">ZRÓB ZDJĘCIE</span>
         </button>
 
-        <p className="text-sm text-gray-600 mt-2">
+        <p className="text-sm text-teal-300 mt-2 italic text-center">
           Jeśli aparat nie działa, spróbuj wdrożyć aplikację na Vercelu lub użyj
           opcji wyboru zdjęcia poniżej.
         </p>
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            if (e.target.files && e.target.files[0]) {
-              const reader = new FileReader();
-              reader.onload = (event) => {
-                if (onCapture) {
-                  onCapture(event.target.result);
-                }
-              };
-              reader.readAsDataURL(e.target.files[0]);
-            }
-          }}
-          className="w-full p-2 border rounded"
-        />
+        <div className="relative mt-3">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                  if (onCapture) {
+                    onCapture(event.target.result);
+                  }
+                };
+                reader.readAsDataURL(e.target.files[0]);
+              }
+            }}
+            className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+          />
+          <button className="w-full bg-teal-700 text-white py-3 px-4 rounded-lg hover:bg-teal-600 transition border-2 border-teal-800 flex items-center justify-center">
+            <Upload size={20} className="mr-2 text-amber-300" />
+            <span className="pixelated text-sm">WYBIERZ ZDJĘCIE</span>
+          </button>
+        </div>
+
+        <button
+          onClick={onCancel}
+          className="bg-red-700 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition border-2 border-red-800 flex items-center justify-center mt-3"
+        >
+          <XCircle size={20} className="mr-2" />
+          <span className="pixelated text-sm">ANULUJ</span>
+        </button>
       </div>
     </div>
   );

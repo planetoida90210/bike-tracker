@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../utils/supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import CameraComponent from "../components/CameraComponent";
+import { Bike, MapPin, ArrowLeft, Camera, X } from "lucide-react";
 
 const AddRidePage = () => {
   const [showCamera, setShowCamera] = useState(false);
@@ -61,7 +62,7 @@ const AddRidePage = () => {
       const filePath = `ride_photos/${fileName}`;
 
       // Prześlij plik do Supabase Storage
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from("bike-tracker")
         .upload(filePath, blob, {
           contentType: "image/jpeg",
@@ -99,7 +100,7 @@ const AddRidePage = () => {
       const photoUrl = await uploadImage(capturedImage);
 
       // Dodaj rekord dojazdu do bazy danych
-      const { data, error } = await supabase.from("rides").insert([
+      const { error } = await supabase.from("rides").insert([
         {
           user_id: user.id,
           ride_date: new Date().toISOString().split("T")[0],
@@ -132,76 +133,114 @@ const AddRidePage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-center mb-6">
-        Zarejestruj dojazd rowerem
-      </h1>
+    <div className="container mx-auto px-4 py-8 min-h-screen bg-indigo-900 bg-opacity-95">
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="mr-4 text-amber-300 hover:text-amber-100 transition flex items-center"
+        >
+          <ArrowLeft size={20} className="mr-1" />
+          <span className="pixelated text-sm">WRÓĆ</span>
+        </button>
+        <h1 className="text-2xl font-bold text-center text-white pixelated">
+          ZAREJESTRUJ DOJAZD
+        </h1>
+      </div>
 
       {showCamera ? (
-        <CameraComponent
-          onCapture={handleCapture}
-          onCancel={handleCancelCapture}
-        />
+        <div className="bg-indigo-800 border-2 border-purple-500 rounded-lg shadow-lg overflow-hidden max-w-md mx-auto">
+          <div className="p-4 border-b border-purple-500 bg-indigo-900 flex justify-between items-center">
+            <h3 className="text-lg font-bold text-amber-300 pixelated">
+              ZRÓB ZDJĘCIE
+            </h3>
+            <button
+              onClick={handleCancelCapture}
+              className="text-red-400 hover:text-red-300"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <CameraComponent
+            onCapture={handleCapture}
+            onCancel={handleCancelCapture}
+          />
+        </div>
       ) : (
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
+        <div className="max-w-md mx-auto bg-indigo-800 border-2 border-purple-500 rounded-lg shadow-lg overflow-hidden">
+          <div className="p-4 border-b border-purple-500 bg-indigo-900">
+            <h3 className="text-xl font-bold text-amber-300 text-center pixelated">
+              DODAJ PRZEJAZD
+            </h3>
+          </div>
+
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <div className="bg-red-900 border border-red-500 text-red-200 px-4 py-3 m-4 rounded">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            <div className="bg-green-900 border border-green-500 text-green-200 px-4 py-3 m-4 rounded">
               {success}
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="p-6">
             <div className="mb-6">
-              <label className="block text-gray-700 mb-2">
-                Zdjęcie weryfikacyjne
+              <label className="block text-teal-300 mb-2 pixelated text-sm">
+                ZDJĘCIE WERYFIKACYJNE
               </label>
 
               {capturedImage ? (
-                <div className="mb-4">
+                <div className="mb-4 relative">
                   <img
                     src={capturedImage}
                     alt="Zdjęcie weryfikacyjne"
-                    className="w-full rounded-lg shadow"
+                    className="w-full rounded-lg border-2 border-purple-500 pixel-art"
                   />
                   <button
                     type="button"
                     onClick={() => setCapturedImage(null)}
-                    className="mt-2 text-sm text-red-500"
+                    className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700 transition"
                   >
-                    Usuń zdjęcie
+                    <X size={16} />
                   </button>
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => setShowCamera(true)}
-                  className="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-opacity-90 transition"
+                  className="w-full bg-indigo-700 text-white py-3 px-4 rounded-lg hover:bg-indigo-600 transition border-2 border-purple-500 flex items-center justify-center"
                 >
-                  Zrób zdjęcie
+                  <Camera size={20} className="mr-2 text-teal-300" />
+                  <span className="pixelated text-sm">ZRÓB ZDJĘCIE</span>
                 </button>
               )}
             </div>
 
             <div className="mb-6">
-              <label className="block text-gray-700 mb-2">Lokalizacja</label>
+              <label className="block text-teal-300 mb-2 pixelated text-sm">
+                LOKALIZACJA
+              </label>
               {location ? (
-                <div className="bg-gray-100 p-3 rounded">
-                  <p>Szerokość: {location.latitude.toFixed(6)}</p>
-                  <p>Długość: {location.longitude.toFixed(6)}</p>
+                <div className="bg-indigo-700 p-4 rounded-lg border-2 border-purple-500">
+                  <p className="text-white flex items-center mb-1">
+                    <MapPin size={16} className="mr-2 text-teal-300" />
+                    <span>Szerokość: {location.latitude.toFixed(6)}</span>
+                  </p>
+                  <p className="text-white flex items-center">
+                    <MapPin size={16} className="mr-2 text-teal-300" />
+                    <span>Długość: {location.longitude.toFixed(6)}</span>
+                  </p>
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={getLocation}
-                  className="w-full bg-secondary text-white py-3 px-4 rounded-lg hover:bg-opacity-90 transition"
+                  className="w-full bg-teal-700 text-white py-3 px-4 rounded-lg hover:bg-teal-600 transition border-2 border-teal-800 flex items-center justify-center"
                 >
-                  Pobierz lokalizację
+                  <MapPin size={20} className="mr-2 text-amber-300" />
+                  <span className="pixelated text-sm">POBIERZ LOKALIZACJĘ</span>
                 </button>
               )}
             </div>
@@ -209,13 +248,42 @@ const AddRidePage = () => {
             <button
               type="submit"
               disabled={isSubmitting || !capturedImage}
-              className={`w-full py-3 px-4 rounded-lg text-white ${
+              className={`w-full py-3 px-4 rounded-lg text-white border-2 flex items-center justify-center ${
                 isSubmitting || !capturedImage
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-success hover:bg-opacity-90 transition"
+                  ? "bg-gray-600 border-gray-700 cursor-not-allowed"
+                  : "bg-purple-700 border-purple-500 hover:bg-purple-600 transition"
               }`}
             >
-              {isSubmitting ? "Rejestrowanie..." : "Zarejestruj dojazd"}
+              {isSubmitting ? (
+                <div className="flex items-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span className="pixelated text-sm">REJESTROWANIE...</span>
+                </div>
+              ) : (
+                <>
+                  <Bike size={20} className="mr-2 text-teal-300" />
+                  <span className="pixelated text-sm">ZAREJESTRUJ DOJAZD</span>
+                </>
+              )}
             </button>
           </form>
         </div>

@@ -1,12 +1,25 @@
-/* Główne style responsywne */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* 
+  Uwaga: Ten plik powinien zawierać dyrektywy @tailwind:
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+  
+  Dyrektywy zostały zakomentowane, aby uniknąć błędów w VS Code.
+  Rzeczywisty plik powinien zawierać te dyrektywy odkomentowane.
+*/
 
-/* Import stylów retro */
-@import "./RetroStyles.css";
+/* Zmienne CSS */
+:root {
+  --primary-color: #9c27b0;
+  --secondary-color: #00bcd4;
+  --accent-color: #ffdd00;
+  --background-color: #0d0a1e;
+  --success-color: #00e676;
+  --warning-color: #ffeb3b;
+  --error-color: #f44336;
+}
 
-/* Podstawowa struktura strony */
+/* Podstawowe style */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
@@ -14,6 +27,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-color);
 }
 
 .App {
@@ -22,40 +36,105 @@ body {
   flex-direction: column;
 }
 
-/* Umieszczamy główną zawartość niżej ze względu na stały pasek nawigacyjny */
-main {
-  margin-top: 60px; /* Dostosuj wysokość zależnie od wysokości twojego paska nawigacyjnego */
+/* Klasa dla tekstu w stylu pixelowym */
+.pixelated {
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
 }
 
-/* Responsywne kontenery */
-.container {
+/* Styl retro do dashboardu */
+.dashboard-card {
+  background-color: rgba(49, 27, 146, 0.9) !important;
+  border: 2px solid #8855ff !important;
+  box-shadow: 0 0 15px rgba(136, 85, 255, 0.3) !important;
+}
+
+.dashboard-heading {
+  font-family: "Press Start 2P", cursive;
+  color: #ffdd00;
+  font-size: 1.2rem;
+  letter-spacing: 0.05em;
+}
+
+.dashboard-value {
+  color: #00ffff;
+  font-weight: bold;
+  font-size: 1.8rem;
+}
+
+.dashboard-label {
+  color: #b3b3cc;
+}
+
+.retro-button {
+  background-color: #9c27b0 !important;
+  border: 2px solid #8855ff !important;
+  color: white !important;
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  padding: 0.8rem 1.2rem !important;
+  transition: all 0.2s;
+}
+
+.retro-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.retro-button:active {
+  transform: translateY(1px);
+}
+
+/* Efekt migania dla tekstu */
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.blink-text {
+  animation: blink 1s steps(1) infinite;
+}
+
+/* Styl dla obrazków pixel art */
+.pixel-image {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Efekt linii jak na monitorze CRT */
+.crt-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.crt-effect::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  padding-right: 1rem;
-  padding-left: 1rem;
-  margin-right: auto;
-  margin-left: auto;
+  height: 100%;
+  background: linear-gradient(
+    rgba(0, 0, 0, 0),
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(0, 0, 0, 0) 50%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 1;
 }
 
-@media (min-width: 640px) {
-  .container {
-    max-width: 640px;
-  }
-}
-
-@media (min-width: 768px) {
-  .container {
-    max-width: 768px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    max-width: 1024px;
-  }
-}
-
-@media (min-width: 1280px) {
-  .container {
-    max-width: 1280px;
-  }
+/* Styl dla głównego kontenera strony */
+main {
+  margin-top: 60px;
+  min-height: calc(100vh - 60px);
+  background-color: #0d0a1e;
 }
