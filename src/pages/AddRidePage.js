@@ -14,28 +14,6 @@ const AddRidePage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  useEffect(() => {
-    // Sprawdź dostępne urządzenia
-    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-      navigator.mediaDevices
-        .enumerateDevices()
-        .then((devices) => {
-          const videoDevices = devices.filter(
-            (device) => device.kind === "videoinput"
-          );
-          console.log("Dostępne kamery:", videoDevices);
-          if (videoDevices.length === 0) {
-            alert("Nie wykryto żadnej kamery w urządzeniu!");
-          } else {
-            console.log(`Wykryto ${videoDevices.length} kamer(y)`);
-          }
-        })
-        .catch((err) => {
-          console.error("Błąd podczas sprawdzania urządzeń:", err);
-        });
-    }
-  }, []);
-
   // Funkcja do pobierania lokalizacji
   const getLocation = () => {
     if (!navigator.geolocation) {
