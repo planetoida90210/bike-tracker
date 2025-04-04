@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import bikeBackgroundImg from "../assets/bike-night-city.png"; // Nowe tło
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -33,12 +32,11 @@ const LoginPage = () => {
     <div
       className="min-h-screen bg-background flex items-center justify-center px-4"
       style={{
-        backgroundImage: `url(${bikeBackgroundImg})`,
+        backgroundImage: "url('/background.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
-      {/* Przyciemnienie dla lepszej czytelności */}
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 relative z-10">
