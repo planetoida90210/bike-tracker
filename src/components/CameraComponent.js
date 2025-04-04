@@ -4,6 +4,7 @@ const CameraComponent = ({ onCapture }) => {
   const [stream, setStream] = useState(null);
   const [photoData, setPhotoData] = useState(null);
   const [error, setError] = useState("");
+  const [debugInfo, setDebugInfo] = useState("");
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -11,20 +12,29 @@ const CameraComponent = ({ onCapture }) => {
   // Funkcja do uruchamiania kamery
   const startCamera = async () => {
     setError("");
+    setDebugInfo("Próba dostępu do kamery...");
     try {
+      setDebugInfo("Sprawdzanie dostępności navigator.mediaDevices...");
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Twoja przeglądarka nie obsługuje API MediaDevices");
+      }
+
+      setDebugInfo("Wywołanie getUserMedia...");
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" },
         audio: false,
       });
+
+      setDebugInfo("Strumień uzyskany, konfiguracja video...");
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
       }
+      setDebugInfo("Kamera uruchomiona pomyślnie!");
     } catch (err) {
       console.error("Błąd dostępu do kamery:", err);
-      setError(
-        "Nie udało się uzyskać dostępu do kamery. Użyj opcji wyboru zdjęcia z galerii."
-      );
+      setError(`Błąd dostępu do kamery: ${err.message || err}`);
+      setDebugInfo(`Szczegóły błędu: ${JSON.stringify(err)}`);
     }
   };
 
@@ -99,7 +109,17 @@ const CameraComponent = ({ onCapture }) => {
     <div className="camera-component">
       {error && (
         <div className="error-message bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+          <p>
+            <strong>Błąd:</strong> {error}
+          </p>
+          {debugInfo && (
+            <details className="mt-2">
+              <summary>Informacje debugowania</summary>
+              <pre className="text-xs mt-2 p-2 bg-gray-100 rounded">
+                {debugInfo}
+              </pre>
+            </details>
+          )}
         </div>
       )}
 
@@ -126,6 +146,11 @@ const CameraComponent = ({ onCapture }) => {
             onChange={handleFileSelect}
             style={{ display: "none" }}
           />
+
+          <p className="text-sm text-gray-600 mt-2">
+            Uwaga: Dostęp do aparatu może nie działać na HTTP. Użyj opcji wyboru
+            zdjęcia z galerii.
+          </p>
         </div>
       )}
 
