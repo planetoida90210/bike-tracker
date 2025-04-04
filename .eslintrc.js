@@ -1,18 +1,13 @@
 module.exports = {
-  parser: "babel-eslint",
+  root: true,
+  parser: "@babel/eslint-parser",
   parserOptions: {
-    ecmaVersion: 2020,
-    sourceType: "module",
-    ecmaFeatures: {
-      jsx: true,
+    requireConfigFile: false,
+    babelOptions: {
+      presets: ["@babel/preset-react"],
     },
   },
-  env: {
-    browser: true,
-    es6: true,
-    node: true,
-  },
-  extends: ["eslint:recommended", "plugin:react/recommended"],
+  extends: ["react-app"],
   rules: {
     "no-restricted-globals": "off",
   },
