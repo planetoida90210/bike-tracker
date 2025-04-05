@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../utils/supabaseClient';
-import { useAuth } from '../context/AuthContext';
+// src/pages/AchievementsPage.js
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { achievementServices } from "../utils/supabaseClient";
+import { useAuth } from "../context/AuthContext";
+import { Trophy, ArrowLeft, Award, Clock, Calendar, Flame } from "lucide-react";
 
 const AchievementsPage = () => {
   const [achievements, setAchievements] = useState([]);
   const [userAchievements, setUserAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -15,29 +17,19 @@ const AchievementsPage = () => {
     const fetchAchievements = async () => {
       try {
         setLoading(true);
-        
+
         // Pobierz wszystkie dostępne osiągnięcia
-        const { data: achievementsData, error: achievementsError } = await supabase
-          .from('achievements')
-          .select('*')
-          .order('requirement_value', { ascending: true });
-        
-        if (achievementsError) throw achievementsError;
-        
+        const achievementsData = await achievementServices.getAllAchievements();
+
         // Pobierz osiągnięcia użytkownika
-        const { data: userAchievementsData, error: userAchievementsError } = await supabase
-          .from('user_achievements')
-          .select('*, achievements(*)')
-          .eq('user_id', user.id);
-        
-        if (userAchievementsError) throw userAchievementsError;
-        
+        const userAchievementsData =
+          await achievementServices.getUserAchievements(user.id);
+
         setAchievements(achievementsData || []);
         setUserAchievements(userAchievementsData || []);
-        
       } catch (err) {
-        console.error('Błąd pobierania osiągnięć:', err);
-        setError('Nie udało się pobrać osiągnięć');
+        console.error("Błąd pobierania osiągnięć:", err);
+        setError("Nie udało się pobrać osiągnięć");
       } finally {
         setLoading(false);
       }
@@ -48,14 +40,14 @@ const AchievementsPage = () => {
 
   // Sprawdź, czy użytkownik ma dane osiągnięcie
   const hasAchievement = (achievementId) => {
-    return userAchievements.some(ua => ua.achievement_id === achievementId);
+    return userAchievements.some((ua) => ua.achievement_id === achievementId);
   };
 
   // Formatowanie daty
   const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('pl-PL', options);
+    if (!dateString) return "";
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return new Date(dateString).toLocaleDateString("pl-PL", options);
   };
 
   // Grupowanie osiągnięć według typu
@@ -70,114 +62,116 @@ const AchievementsPage = () => {
 
   // Mapowanie typów osiągnięć na przyjazne nazwy
   const typeNames = {
-    'total_rides': 'Liczba dojazdów',
-    'streak': 'Serie dni',
-    'weekly': 'Tygodniowe',
-    'monthly': 'Miesięczne'
+    total_rides: "Liczba dojazdów",
+    streak: "Serie dni",
+    weekly: "Tygodniowe",
+    monthly: "Miesięczne",
+    special: "Specjalne",
   };
 
-  // Ikony dla osiągnięć
-  const achievementIcons = {
-    'total_rides': '🚲',
-    'streak': '🔥',
-    'weekly': '📅',
-    'monthly': '📆'
+  // Ikony dla typów osiągnięć
+  const typeIcons = {
+    total_rides: <Trophy size={20} className="text-amber-300" />,
+    streak: <Flame size={20} className="text-red-400" />,
+    weekly: <Calendar size={20} className="text-blue-400" />,
+    monthly: <Clock size={20} className="text-purple-400" />,
+    special: <Award size={20} className="text-green-400" />,
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Osiągnięcia</h1>
+    <div className="container mx-auto px-4 py-8 min-h-screen bg-indigo-900 bg-opacity-95">
+      <div className="flex items-center mb-6">
         <button
-          onClick={() => navigate('/dashboard')}
-          className="bg-secondary text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition"
+          onClick={() => navigate("/dashboard")}
+          className="mr-4 text-amber-300 hover:text-amber-100 transition flex items-center"
         >
-          Powrót do dashboardu
+          <ArrowLeft size={20} className="mr-1" />
+          <span className="pixelated text-sm">WRÓĆ</span>
         </button>
+        <h1 className="text-2xl font-bold text-white pixelated flex items-center">
+          <Trophy size={24} className="mr-2 text-amber-300" />
+          OSIĄGNIĘCIA
+        </h1>
       </div>
-      
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
-      
+
       {loading ? (
         <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-300"></div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-900 border-2 border-red-700 text-red-200 px-4 py-3 rounded-lg mb-4">
+          {error}
         </div>
       ) : (
-        <div>
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Twoje odznaki</h2>
-            
-            {userAchievements.length === 0 ? (
-              <div className="text-center py-6">
-                <p className="text-gray-600 mb-4">Nie masz jeszcze żadnych odznak.</p>
-                <p className="text-gray-600">Dojeżdżaj regularnie rowerem do pracy, aby zdobywać odznaki!</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {userAchievements.map((ua) => (
-                  <div key={ua.id} className="bg-green-100 p-4 rounded-lg text-center">
-                    <div className="text-3xl mb-2">
-                      {achievementIcons[ua.achievements.requirement_type] || '🏆'}
-                    </div>
-                    <p className="font-medium">{ua.achievements.name}</p>
-                    <p className="text-xs text-gray-600">{ua.achievements.description}</p>
-                    <p className="text-xs text-gray-500 mt-2">Zdobyto: {formatDate(ua.achieved_at)}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Dostępne osiągnięcia</h2>
-            
-            {Object.keys(groupedAchievements).length === 0 ? (
-              <p className="text-gray-600">Brak dostępnych osiągnięć</p>
-            ) : (
-              <div className="space-y-6">
-                {Object.entries(groupedAchievements).map(([type, typeAchievements]) => (
-                  <div key={type}>
-                    <h3 className="font-semibold text-lg mb-3">{typeNames[type] || type}</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      {typeAchievements.map((achievement) => {
-                        const achieved = hasAchievement(achievement.id);
-                        return (
-                          <div 
-                            key={achievement.id} 
-                            className={`p-4 rounded-lg ${
-                              achieved ? 'bg-green-100 border border-green-200' : 'bg-gray-100'
-                            }`}
-                          >
-                            <div className="flex items-start">
-                              <div className="text-3xl mr-3">
-                                {achievementIcons[achievement.requirement_type] || '🏆'}
-                              </div>
-                              <div>
-                                <h4 className="font-medium">{achievement.name}</h4>
-                                <p className="text-sm text-gray-600">{achievement.description}</p>
-                                <div className="mt-2 flex justify-between items-center">
-                                  <span className="text-xs text-gray-500">
-                                    {achieved ? 'Zdobyto!' : 'Niezdobyte'}
-                                  </span>
-                                  <span className="text-xs font-semibold text-primary">
-                                    +{achievement.points} pkt
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
+        <div className="grid grid-cols-1 gap-6">
+          {Object.keys(groupedAchievements).map((type) => (
+            <div
+              key={type}
+              className="bg-indigo-800 rounded-lg shadow-lg p-6 border-2 border-purple-500"
+            >
+              <h2 className="text-xl font-bold mb-4 text-amber-300 pixelated flex items-center">
+                {typeIcons[type]}
+                <span className="ml-2">
+                  {typeNames[type] || type.toUpperCase()}
+                </span>
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {groupedAchievements[type].map((achievement) => {
+                  const isUnlocked = hasAchievement(achievement.id);
+                  const userAchievement = userAchievements.find(
+                    (ua) => ua.achievement_id === achievement.id
+                  );
+
+                  return (
+                    <div
+                      key={achievement.id}
+                      className={`p-4 rounded-lg border-2 ${
+                        isUnlocked
+                          ? "bg-green-900 bg-opacity-30 border-green-700"
+                          : "bg-indigo-900 bg-opacity-50 border-purple-700"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="text-2xl">{achievement.icon}</div>
+                        <div
+                          className={`text-sm font-bold px-2 py-1 rounded ${
+                            isUnlocked
+                              ? "bg-green-700 text-white"
+                              : "bg-indigo-700 text-gray-300"
+                          }`}
+                        >
+                          {isUnlocked ? "ODBLOKOWANE" : "ZABLOKOWANE"}
+                        </div>
+                      </div>
+
+                      <h3 className="text-md font-bold text-white pixelated mb-1">
+                        {achievement.name}
+                      </h3>
+
+                      <p className="text-sm text-teal-300 mb-2">
+                        {achievement.description}
+                      </p>
+
+                      <div className="flex justify-between text-xs mt-2">
+                        <div className="text-amber-300">
+                          <span className="font-bold">
+                            {achievement.points}
+                          </span>{" "}
+                          PKT
+                        </div>
+                        {isUnlocked && userAchievement.unlocked_at && (
+                          <div className="text-gray-300">
+                            Zdobyte: {formatDate(userAchievement.unlocked_at)}
                           </div>
-                        );
-                      })}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            )}
-          </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

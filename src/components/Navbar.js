@@ -13,6 +13,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import NotificationsPopover from "./NotificationsPopover";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -145,16 +146,16 @@ const Navbar = () => {
               />
             )}
 
-            <button
-              onClick={() => {
-                setIsMenuOpen(false);
-                handleSignOut();
-              }}
-              className="flex items-center text-red-400 hover:text-red-300 transition px-3 py-1 pixelated text-sm"
-            >
-              <LogOut size={18} className="mr-1" />
-              <span>WYLOGUJ</span>
-            </button>
+            <div className="flex items-center space-x-2">
+              <NotificationsPopover />
+              <button
+                onClick={handleSignOut}
+                className="flex items-center text-red-400 hover:text-red-300 transition px-3 py-1 pixelated text-sm"
+              >
+                <LogOut size={18} className="mr-1" />
+                <span>WYLOGUJ</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

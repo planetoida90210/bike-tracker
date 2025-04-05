@@ -1,96 +1,103 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+// src/context/AuthContext.js
+import React, { createContext, useState, useContext, useEffect } from "react";
 import { supabase } from "../utils/supabaseClient";
 
-// Tworzenie kontekstu autentykacji
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-// Hook do używania kontekstu autentykacji
-export const useAuth = () => useContext(AuthContext);
-
-// Provider kontekstu autentykacji
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Sprawdzenie sesji przy ładowaniu
   useEffect(() => {
-    const checkSession = async () => {
+    // Sprawdź aktualną sesję przy ładowaniu
+    const setData = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        setLoading(true);
+
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
 
         if (error) {
-          throw error;
+          console.error("Error getting session:", error);
         }
 
-        if (data?.session) {
-          const { data: userData, error: userError } =
-            await supabase.auth.getUser();
-
-          if (userError) {
-            throw userError;
-          }
-
-          setUser(userData.user);
-        }
-      } catch (err) {
-        console.error("Błąd sprawdzania sesji:", err);
-        setError(err.message);
+        setSession(session);
+        setUser(session?.user ?? null);
+      } catch (error) {
+        console.error("Error setting user:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    checkSession();
+    setData();
 
-    // Nasłuchiwanie zmian w autentykacji
+    // Słuchaj zmian w statusie autentykacji
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session) {
-          const { data: userData } = await supabase.auth.getUser();
-          setUser(userData.user);
-        } else {
-          setUser(null);
-        }
+      async (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
         setLoading(false);
       }
     );
 
     return () => {
-      if (authListener) {
+      if (authListener?.subscription?.unsubscribe) {
         authListener.subscription.unsubscribe();
       }
     };
   }, []);
 
-  // Funkcja logowania
+  // Logowanie
   const signIn = async (email, password) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.auth.signInWithPassword({
+
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      return data;
-    } catch (err) {
-      setError(err.message);
-      throw err;
+      // Auth state będzie zaktualizowany przez listener
+      return { success: true };
+    } catch (error) {
+      console.error("Error signing in:", error);
+      return { error };
     } finally {
       setLoading(false);
     }
   };
 
-  // Funkcja rejestracji
+  // Wylogowywanie
+  const signOut = async () => {
+    try {
+      setLoading(true);
+
+      const { error } = await supabase.auth.signOut();
+
+      if (error) throw error;
+
+      // Auth state będzie zaktualizowany przez listener
+      return { success: true };
+    } catch (error) {
+      console.error("Error signing out:", error);
+      return { error };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Rejestracja
   const signUp = async (email, password, username) => {
     try {
       setLoading(true);
 
-      // Rejestracja użytkownika w auth
+      // Zarejestruj użytkownika
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -98,61 +105,73 @@ export const AuthProvider = ({ children }) => {
 
       if (error) throw error;
 
-      if (data && data.user) {
-        // Tworzenie profilu użytkownika w tabeli profiles
+      if (data?.user) {
+        // Utwórz profil użytkownika
         const { error: profileError } = await supabase.from("profiles").insert([
           {
             id: data.user.id,
-            username: username,
-            email: email,
+            username,
+            email,
             role: "user",
-            created_at: new Date().toISOString(),
+            total_rides: 0,
+            total_points: 0,
+            streak_days: 0,
+            active: true,
           },
         ]);
 
         if (profileError) {
-          console.error("Błąd tworzenia profilu:", profileError);
-          // Mimo błędu profilu, kontynuujemy - użytkownik został utworzony w auth
+          console.error("Error creating profile:", profileError);
         }
       }
 
-      return { data, error: null };
+      // Auth state będzie zaktualizowany przez listener
+      return { success: true };
     } catch (error) {
-      console.error("Błąd rejestracji:", error);
-      return { data: null, error };
+      console.error("Error signing up:", error);
+      return { error };
     } finally {
       setLoading(false);
     }
   };
 
-  // Funkcja wylogowania
-  const signOut = async () => {
+  // Sprawdź, czy użytkownik jest administratorem
+  const checkIfAdmin = async () => {
+    if (!user) return false;
+
     try {
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      setUser(null);
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
+      return data?.role === "admin";
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+      return false;
     }
   };
 
-  // Wartość kontekstu
-  const value = {
-    user,
-    loading,
-    error,
-    signIn,
-    signUp,
-    signOut,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        loading,
+        signUp,
+        signIn,
+        signOut,
+        checkIfAdmin,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
+
+export const useAuth = () => useContext(AuthContext);
+
+export default AuthContext;
