@@ -3,26 +3,59 @@
   "name": "Bike Tracker - Śledzenie dojazdów rowerem",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "logo192.png",
-      "type": "image/png",
-      "sizes": "192x192"
+      "src": "android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     },
     {
-      "src": "logo512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
     }
   ],
   "start_url": ".",
   "display": "standalone",
+  "orientation": "portrait",
   "theme_color": "#4CAF50",
   "background_color": "#ffffff",
-  "orientation": "portrait",
   "description": "Aplikacja do śledzenia dojazdów rowerem do pracy",
-  "screenshots": []
+  "lang": "pl-PL",
+  "dir": "ltr",
+  "categories": ["health", "sports", "productivity", "navigation"],
+  "iarc_rating_id": "e10+",
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "screenshot-1.png",
+      "sizes": "540x960",
+      "type": "image/png"
+    },
+    {
+      "src": "screenshot-2.png",
+      "sizes": "540x960",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Zacznij dojazd",
+      "short_name": "Dojazd",
+      "description": "Zarejestruj nowy dojazd do pracy",
+      "url": "/new-ride",
+      "icons": [{ "src": "android-chrome-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Statystyki",
+      "short_name": "Stats",
+      "description": "Zobacz swoją formę",
+      "url": "/stats",
+      "icons": [{ "src": "android-chrome-192x192.png", "sizes": "192x192" }]
+    }
+  ]
 }
