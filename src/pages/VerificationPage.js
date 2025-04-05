@@ -1,27 +1,53 @@
 import React, { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import { supabase } from "../utils/supabaseClient";
 import { useAuth } from "../context/AuthContext";
+import { updateUserStats } from "../utils/UpdateUserStats";
 
 const VerificationPage = () => {
   const [rides, setRides] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false); // Nowy stan
   const { user } = useAuth();
+
+  // Sprawdzenie, czy użytkownik ma uprawnienia administratora
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("is_admin")
+          .eq("id", user.id)
+          .single();
+
+        if (error) throw error;
+
+        setIsAdmin(data?.is_admin === true);
+      } catch (err) {
+        console.error("Błąd podczas sprawdzania statusu administratora:", err);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user.id]);
 
   useEffect(() => {
     // Pobierz niezweryfikowane dojazdy innych użytkowników
     const fetchUnverifiedRides = async () => {
+      // Nie pobieraj danych, jeśli użytkownik nie jest adminem
+      if (!isAdmin) return;
+
       try {
         setLoading(true);
 
-        // Pobierz dojazdy z Supabase, które nie są zweryfikowane i nie należą do bieżącego użytkownika
-        // Używamy jawnie określonej relacji z foreign.key
+        // Pobierz dojazdy z Supabase, które nie są zweryfikowane
         const { data, error } = await supabase
           .from("rides")
           .select("*, user:profiles!rides_user_id_fkey(username)")
           .eq("verified", false)
-          .neq("user_id", user.id)
           .order("created_at", { ascending: false });
 
         if (error) throw error;
@@ -35,8 +61,11 @@ const VerificationPage = () => {
       }
     };
 
-    fetchUnverifiedRides();
-  }, [user.id]);
+    // Jeśli status administratora został już sprawdzony, pobierz przejazdy
+    if (isAdmin !== null) {
+      fetchUnverifiedRides();
+    }
+  }, [isAdmin, user.id]);
 
   // Formatowanie daty
   const formatDate = (dateString) => {
@@ -44,10 +73,22 @@ const VerificationPage = () => {
     return new Date(dateString).toLocaleDateString("pl-PL", options);
   };
 
-  // Obsługa weryfikacji dojazdu
   const handleVerify = async (rideId, isApproved) => {
+    // Nie pozwól weryfikować, jeśli użytkownik nie jest adminem
+    if (!isAdmin) {
+      setError("Nie masz uprawnień do weryfikacji przejazdów!");
+      return;
+    }
+
     try {
       setLoading(true);
+
+      // Pobierz dane przejazdu przed aktualizacją
+      const { data: rideData } = await supabase
+        .from("rides")
+        .select("user_id")
+        .eq("id", rideId)
+        .single();
 
       // Aktualizuj rekord dojazdu w Supabase
       const { error } = await supabase
@@ -62,6 +103,11 @@ const VerificationPage = () => {
         .eq("id", rideId);
 
       if (error) throw error;
+
+      // Aktualizuj statystyki użytkownika
+      if (rideData?.user_id) {
+        await updateUserStats(supabase, rideData.user_id);
+      }
 
       // Aktualizuj lokalny stan
       setRides(rides.filter((ride) => ride.id !== rideId));
@@ -81,9 +127,16 @@ const VerificationPage = () => {
     }
   };
 
+  // Jeśli użytkownik nie jest adminem, przekieruj go do dashboardu
+  if (isAdmin === false) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Weryfikacja dojazdów</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        Weryfikacja dojazdów (Panel Administratora)
+      </h1>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
