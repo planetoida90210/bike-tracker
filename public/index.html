@@ -43,18 +43,31 @@
     <link
       rel="mask-icon"
       href="%PUBLIC_URL%/safari-pinned-tab.svg"
-      color="#4CAF50"
+      color="#312e81"
     />
+
+    <!-- iOS PWA metatagi -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Bike Tracker" />
 
     <!-- Manifest -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <meta name="theme-color" content="#4CAF50" />
-    <meta name="background-color" content="#ffffff" />
+    <meta name="theme-color" content="#312e81" />
+    <!-- indigo-900 -->
+    <meta name="background-color" content="#1e1b4b" />
+    <!-- indigo-950 -->
     <meta
       name="description"
       content="Aplikacja do śledzenia dojazdów rowerem do pracy"
     />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:title" content="Bike Tracker" />
@@ -84,6 +97,39 @@
 
     <!-- Title -->
     <title>Bike Tracker</title>
+
+    <!-- Style dla safe area -->
+    <style>
+      :root {
+        --sat: env(safe-area-inset-top);
+        --sar: env(safe-area-inset-right);
+        --sab: env(safe-area-inset-bottom);
+        --sal: env(safe-area-inset-left);
+      }
+
+      body {
+        padding: var(--sat) var(--sar) var(--sab) var(--sal);
+        background-color: #1e1b4b; /* indigo-950 */
+      }
+
+      /* Dla PWA na iOS */
+      @media (display-mode: standalone) {
+        body {
+          background-color: #1e1b4b; /* indigo-950 */
+        }
+      }
+
+      /* Klasa do używania w komponentach */
+      .safe-area-bottom {
+        padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+      }
+
+      /* Piksleowy styl czcionki */
+      .pixelated {
+        font-family: "Press Start 2P", cursive;
+        font-size: 0.7rem;
+      }
+    </style>
   </head>
 
   <body>
